@@ -16,6 +16,10 @@ public class Subscription {
     private Long userId;
 
     private String subscriptionId;   // Razorpay subscription ID
+    // Tokenized payment details for recurring billing
+    private String customerId;       // Razorpay customer ID
+    private String paymentToken;     // Token/mandate ID returned by Razorpay
+
 
     private LocalDate startDate;
     private LocalDate expiryDate;
@@ -28,7 +32,8 @@ public class Subscription {
     public Subscription() {
     }
 
-    public Subscription(Long userId, String subscriptionId, LocalDate startDate, LocalDate expiryDate, Boolean isActive, Integer failureCount, LocalDateTime lastFailureAt) {
+    public Subscription(Long userId, String subscriptionId, LocalDate startDate, LocalDate expiryDate, Boolean isActive,
+                        Integer failureCount, LocalDateTime lastFailureAt, String customerId, String paymentToken) {
         this.userId = userId;
         this.subscriptionId = subscriptionId;
         this.startDate = startDate;
@@ -36,7 +41,10 @@ public class Subscription {
         this.isActive = isActive;
         this.failureCount = failureCount;
         this.lastFailureAt = lastFailureAt;
+        this.customerId = customerId;
+        this.paymentToken = paymentToken;
     }
+
 
     public Long getUserId() {
         return userId;
@@ -60,6 +68,22 @@ public class Subscription {
 
     public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getPaymentToken() {
+        return paymentToken;
+    }
+
+    public void setPaymentToken(String paymentToken) {
+        this.paymentToken = paymentToken;
     }
 
     public LocalDate getExpiryDate() {

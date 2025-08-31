@@ -1,6 +1,7 @@
 package com.om.To_Do.List.ecosystem.controller;
 import com.om.To_Do.List.ecosystem.services.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 @CrossOrigin(origins = "${cors.allowed-origins}")
 public class PaymentController {
 
+    @Autowired
     private  PaymentService paymentService;
 
     /**
@@ -58,4 +60,6 @@ public class PaymentController {
         paymentService.handleWebhook(payload, signature);
         return ResponseEntity.ok(Map.of("ok", true));
     }
+
+
 }

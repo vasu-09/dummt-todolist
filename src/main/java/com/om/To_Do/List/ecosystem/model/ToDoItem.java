@@ -2,6 +2,10 @@ package com.om.To_Do.List.ecosystem.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -19,6 +23,13 @@ public class ToDoItem {
 
     private String priceText;      // e.g., "₹50" (optional)
 
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
     @Lob
     @Column(columnDefinition = "TEXT")
     private String subQuantitiesJson; // JSON string for sub-quantities (optional)
@@ -30,13 +41,33 @@ public class ToDoItem {
     public ToDoItem() {
     }
 
-    public ToDoItem(Long id, String itemName, String quantity, String priceText, String subQuantitiesJson, ToDoList list) {
+    public ToDoItem(Long id, String itemName, String quantity, String priceText, String subQuantitiesJson, ToDoList list, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.itemName = itemName;
         this.quantity = quantity;
         this.priceText = priceText;
         this.subQuantitiesJson = subQuantitiesJson;
         this.list = list;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public Long getId() {

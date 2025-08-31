@@ -29,6 +29,9 @@ public class ToDoList {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    private ListType listType;
+
 
     @OneToMany(mappedBy = "list", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ToDoItem> items;
@@ -39,15 +42,18 @@ public class ToDoList {
     public ToDoList() {
     }
 
-    public ToDoList(Long id, Long createdByUserId, String title, LocalDateTime createdAt, LocalDateTime updatedAt, List<ToDoItem> items, List<ListRecipient> recipients) {
+    public ToDoList(Long id, Long createdByUserId, String title, LocalDateTime createdAt, LocalDateTime updatedAt,
+                    ListType listType, List<ToDoItem> items, List<ListRecipient> recipients) {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.title = title;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.listType = listType;
         this.items = items;
         this.recipients = recipients;
     }
+
 
     public Long getId() {
         return id;
@@ -87,6 +93,14 @@ public class ToDoList {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public ListType getListType() {
+        return listType;
+    }
+
+    public void setListType(ListType listType) {
+        this.listType = listType;
     }
 
     public List<ToDoItem> getItems() {

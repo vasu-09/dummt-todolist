@@ -7,9 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+
 @Repository
 public interface ToDoItemRepository extends JpaRepository<ToDoItem, Long> {
     @Modifying
     @Query("DELETE FROM ToDoItem t WHERE t.list.id = :listId")
     void deleteByListId(@Param("listId") Long listId);
+
+    List<ToDoItem> findByListIdAndUpdatedAtAfter(Long listId, LocalDateTime updatedAt);
 }

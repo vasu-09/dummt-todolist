@@ -8,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -61,8 +63,8 @@ public class ToDoListController {
     }
 
     @DeleteMapping("/{listId}")
-    public ResponseEntity<?> deleteList(@PathVariable Long listId) {
-        toDoListService.deleteList(listId);
+    public ResponseEntity<?> deleteList(@PathVariable Long listId, @RequestHeader("X-User-Id") Long userId ) throws AccessDeniedException {
+        toDoListService.deleteList(listId, userId);
         return ResponseEntity.ok("List deleted successfully.");
     }
 
@@ -147,6 +149,22 @@ public class ToDoListController {
     ) throws java.nio.file.AccessDeniedException {
         toDoListService.deleteChecklistItem(listId, itemId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{listId}/sync")
+    public ResponseEntity<List<ToDoItem>> getUpdatesSince(
+            @PathVariable Long listId,
+            @RequestParam("since") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since
+    ) {
+        return ResponseEntity.ok(toDoListService.getUpdatesSince(listId, since));
+    }
+
+    @PostMapping("/{listId}/sync")
+    public ResponseEntity<SyncResponse> syncOfflineUpdates(
+            @PathVariable Long listId,
+            @RequestBody SyncRequest request
+    ) {
+        return ResponseEntity.ok(toDoListService.syncOfflineUpdates(listId, request));
     }
 
 
