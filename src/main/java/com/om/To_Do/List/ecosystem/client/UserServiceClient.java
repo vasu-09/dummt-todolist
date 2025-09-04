@@ -12,10 +12,10 @@ import java.util.List;
 @FeignClient("AUTHENTICATION-SERVICE")
 public interface UserServiceClient {
 
-    @PostMapping("/users/get-ids-by-phone-numbers")
+    @PostMapping("/user/get-ids-by-phone-numbers")
     public ResponseEntity<List<Long>> getUserIdsByPhoneNumbers(@RequestBody List<String> phoneNumbers);
 
-    @PostMapping("/get-id-by-phone-numbers")
+    @PostMapping("/user/get-id-by-phone-numbers")
     public ResponseEntity<Long> getUseridByPhoneNumber(@RequestBody String phoneNumber);
 
 

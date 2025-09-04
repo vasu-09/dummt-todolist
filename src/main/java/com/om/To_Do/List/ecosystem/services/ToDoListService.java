@@ -11,6 +11,8 @@ import com.om.To_Do.List.ecosystem.repository.ToDoItemRepository;
 import com.om.To_Do.List.ecosystem.repository.ToDoListRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,10 @@ import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -41,16 +47,40 @@ public class ToDoListService {
     // injected via @RequiredArgsConstructor
     private  PaymentService paymentService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(ToDoListService.class);
+
+    private String serializeSubQuantities(List<SubQuantityDTO> subs) {
+        if (subs == null) return null;
+        try {
+            return objectMapper.writeValueAsString(subs);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize sub quantities", e);
+        }
+    }
+
+    private List<SubQuantityDTO> deserializeSubQuantities(String json) {
+        if (json == null) return null;
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<SubQuantityDTO>>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to deserialize sub quantities", e);
+        }
+    }
+
+
     // Step 1: Create list without recipients
     @Transactional
     public ToDoList createList(CreateListRequest request) throws AccessDeniedException {
-        // 🔒 Require active subscription for this endpoint
-        boolean active = paymentService.isSubscriptionActive(request.getCreatedByUserId());
-        if (!active) {
-            throw new AccessDeniedException(
-                    "Subscription required to create priced lists. " +
-                            "Use /api/lists/checklist for simple item-only lists.");
-        }
+//        // 🔒 Require active subscription for this endpoint
+//        boolean active = paymentService.isSubscriptionActive(request.getCreatedByUserId());
+//        if (!active) {
+//            throw new AccessDeniedException(
+//                    "Subscription required to create priced lists. " +
+//                            "Use /api/lists/checklist for simple item-only lists.");
+//        }
 
         ToDoList list = new ToDoList();
         list.setCreatedByUserId(request.getCreatedByUserId());
@@ -64,7 +94,7 @@ public class ToDoListService {
             item.setItemName(dto.getItemName());
             item.setQuantity(dto.getQuantity());
             item.setPriceText(dto.getPriceText());
-            item.setSubQuantitiesJson(dto.getSubQuantitiesJson());
+            item.setSubQuantitiesJson(serializeSubQuantities(dto.getSubQuantities()));
             item.setList(list);
             return item;
         }).toList();
@@ -100,7 +130,11 @@ public class ToDoListService {
 
     // Step 2: Add recipients
     @Transactional
-    public void addRecipientsByPhone(Long listId, List<String> phoneNumbers) {
+    public void addRecipientsByPhone(Long listId, List<String> phoneNumbers) throws IllegalAccessException {
+        if(phoneNumbers == null || phoneNumbers.isEmpty()){
+            throw new IllegalAccessException("phoneNumbers must not be null or empty.");
+        }
+
         ToDoList list = toDoListRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found"));
 
@@ -184,7 +218,7 @@ public class ToDoListService {
             item.setItemName(dto.getItemName());
             item.setQuantity(dto.getQuantity());
             item.setPriceText(dto.getPriceText());
-            item.setSubQuantitiesJson(dto.getSubQuantitiesJson());
+            item.setSubQuantitiesJson(serializeSubQuantities(dto.getSubQuantities()));
             item.setList(list);
             return item;
         }).toList();
@@ -207,6 +241,8 @@ public class ToDoListService {
     public List<ToDoListTitleDTO> getListsByCreator(Long userId) {
         List<ToDoList> lists = toDoListRepository.findByCreatedByUserId(userId);
 
+        log.info("ToDoList: {}", lists);
+
         return lists.stream().map(list -> {
             ToDoListTitleDTO dto = new ToDoListTitleDTO();
             dto.setId(list.getId());
@@ -220,13 +256,21 @@ public class ToDoListService {
                 .orElseThrow(() -> new RuntimeException("List not found or you are not the owner"));
 
         ToDoListSummaryDTO dto = new ToDoListSummaryDTO();
+        dto.setId(list.getId());
         dto.setTitle(list.getTitle());
         dto.setListType(list.getListType().name());
-        List<ToDoItemDTO> itemDTOs = list.getItems().stream().map(item -> {
-            ToDoItemDTO itemDTO = new ToDoItemDTO();
+        dto.setCreatedAt(list.getCreatedAt());
+        dto.setUpdatedAt(list.getUpdatedAt());
+        dto.setCreatedByUserId(list.getCreatedByUserId());
+
+        List<ToDoItemRes> itemDTOs = list.getItems().stream().map(item -> {
+            ToDoItemRes itemDTO = new ToDoItemRes();
+            itemDTO.setId(item.getId());
             itemDTO.setItemName(item.getItemName());
             itemDTO.setQuantity(item.getQuantity());
             itemDTO.setPriceText(item.getPriceText());
+            itemDTO.setCreatedAt(item.getCreatedAt());
+            itemDTO.setUpdatedAt(item.getUpdatedAt());
             itemDTO.setSubQuantitiesJson(item.getSubQuantitiesJson());
             return itemDTO;
         }).toList();
@@ -252,9 +296,16 @@ public class ToDoListService {
 
         ToDoListSummaryDTO dto = new ToDoListSummaryDTO();
         dto.setTitle(list.getTitle());
-
-        List<ToDoItemDTO> itemDTOs = list.getItems().stream().map(item -> {
-            ToDoItemDTO itemDTO = new ToDoItemDTO();
+        dto.setCreatedByUserId(list.getCreatedByUserId());
+        dto.setId(list.getId());
+        dto.setListType(list.getListType().name());
+        dto.setUpdatedAt(list.getUpdatedAt());
+        dto.setCreatedAt(list.getCreatedAt());
+        List<ToDoItemRes> itemDTOs = list.getItems().stream().map(item -> {
+            ToDoItemRes itemDTO = new ToDoItemRes();
+            itemDTO.setId(item.getId());
+            itemDTO.setUpdatedAt(item.getUpdatedAt());
+            itemDTO.setCreatedAt(item.getCreatedAt());
             itemDTO.setItemName(item.getItemName());
             itemDTO.setQuantity(item.getQuantity());
             itemDTO.setPriceText(item.getPriceText());
@@ -310,17 +361,17 @@ public class ToDoListService {
         eventPublisher.publishEvent(evt);
     }
 
-    public ToDoItem updateItem(Long listId, Long itemId, Long userId, UpdateItemRequest req) throws AccessDeniedException {
+    public ToDoItemRes updateItem(Long listId, Long itemId, Long userId, UpdateItemRequest req) throws AccessDeniedException {
 
         // 1) verify list exists
         ToDoList list = toDoListRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found"));
-        boolean active = paymentService.isSubscriptionActive(list.getCreatedByUserId());
-        if (!active) {
-            throw new AccessDeniedException(
-                    "Subscription required to create priced lists. " +
-                            "Use /api/lists/checklist for simple item-only lists.");
-        }
+//        boolean active = paymentService.isSubscriptionActive(list.getCreatedByUserId());
+//        if (!active) {
+//            throw new AccessDeniedException(
+//                    "Subscription required to create priced lists. " +
+//                            "Use /api/lists/checklist for simple item-only lists.");
+//        }
         // 2) load the item
         ToDoItem item = toDoItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
@@ -338,12 +389,25 @@ public class ToDoListService {
         if (req.getItemName() != null)       item.setItemName(req.getItemName());
         if (req.getQuantity() != null)       item.setQuantity(req.getQuantity());
         if (req.getPriceText() != null)      item.setPriceText(req.getPriceText());
-        if (req.getSubQuantitiesJson() != null) {
-            item.setSubQuantitiesJson(req.getSubQuantitiesJson());
+        if (req.getSubQuantities() != null) {
+            item.setSubQuantitiesJson(serializeSubQuantities(req.getSubQuantities()));
         }
+        toDoItemRepository.save(item);
+        list.setUpdatedAt(LocalDateTime.now());
+        toDoListRepository.save(list);
+
+        ToDoItemRes toDoItemDTO = new ToDoItemRes();
+        toDoItemDTO.setId(item.getId());
+        toDoItemDTO.setItemName(item.getItemName());
+        toDoItemDTO.setId(item.getId());
+        toDoItemDTO.setUpdatedAt(item.getUpdatedAt());
+        toDoItemDTO.setPriceText(item.getPriceText());
+        toDoItemDTO.setQuantity(item.getQuantity());
+        toDoItemDTO.setCreatedAt(item.getCreatedAt());
+        toDoItemDTO.setSubQuantitiesJson(item.getSubQuantitiesJson());
 
         // 5) persist and return
-        return toDoItemRepository.save(item);
+        return toDoItemDTO;
     }
 
     /**
@@ -353,12 +417,12 @@ public class ToDoListService {
 
         ToDoList list = toDoListRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found"));
-        boolean active = paymentService.isSubscriptionActive(list.getCreatedByUserId());
-        if (!active) {
-            throw new AccessDeniedException(
-                    "Subscription required to create priced lists. " +
-                            "Use /api/lists/checklist for simple item-only lists.");
-        }
+//        boolean active = paymentService.isSubscriptionActive(list.getCreatedByUserId());
+//        if (!active) {
+//            throw new AccessDeniedException(
+//                    "Subscription required to create priced lists. " +
+//                            "Use /api/lists/checklist for simple item-only lists.");
+//        }
 
         if (!list.getCreatedByUserId().equals(userId)) {
             throw new AccessDeniedException("Only the meeting creator can update this meeting.");
@@ -369,6 +433,9 @@ public class ToDoListService {
         if (!item.getList().getId().equals(listId)) {
             throw new RuntimeException("Item does not belong to list " + listId);
         }
+
+        list.setUpdatedAt(LocalDateTime.now());
+        toDoListRepository.save(list);
 
         toDoItemRepository.delete(item);
     }
@@ -401,6 +468,8 @@ public class ToDoListService {
         item.setPriceText(null);
         item.setSubQuantitiesJson(null);
 
+        list.setUpdatedAt(LocalDateTime.now());
+        toDoListRepository.save(list);
         return toDoItemRepository.save(item);
     }
 
@@ -424,6 +493,8 @@ public class ToDoListService {
             throw new RuntimeException("Item does not belong to list " + listId);
         }
 
+        list.setUpdatedAt(LocalDateTime.now());
+        toDoListRepository.save(list);
         // 4) delete
         toDoItemRepository.delete(item);
     }

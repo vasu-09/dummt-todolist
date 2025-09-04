@@ -2,22 +2,24 @@ package com.om.To_Do.List.ecosystem.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Data
 
 public class UpdateItemRequest {
     private String itemName;
     private String quantity;
     private String priceText;
-    private String subQuantitiesJson;
+    private List<SubQuantityDTO> subQuantities;
 
     public UpdateItemRequest() {
     }
 
-    public UpdateItemRequest(String itemName, String quantity, String priceText, String subQuantitiesJson) {
+    public UpdateItemRequest(String itemName, String quantity, String priceText, List<SubQuantityDTO> subQuantitiesJson) {
         this.itemName = itemName;
         this.quantity = quantity;
         this.priceText = priceText;
-        this.subQuantitiesJson = subQuantitiesJson;
+        this.subQuantities = subQuantitiesJson;
     }
 
     public String getItemName() {
@@ -44,11 +46,11 @@ public class UpdateItemRequest {
         this.priceText = priceText;
     }
 
-    public String getSubQuantitiesJson() {
-        return subQuantitiesJson;
+    public List<SubQuantityDTO> getSubQuantities() {
+        return subQuantities;
     }
 
-    public void setSubQuantitiesJson(String subQuantitiesJson) {
-        this.subQuantitiesJson = subQuantitiesJson;
+    public void setSubQuantitiesJson(List<SubQuantityDTO> subQuantitiesJson) {
+        this.subQuantities = subQuantitiesJson;
     }
 }

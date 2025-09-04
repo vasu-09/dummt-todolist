@@ -6,21 +6,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 
 public class ToDoItemDTO {
     private String itemName;
     private String quantity;
     private String priceText;
-    private String subQuantitiesJson;
+    private List<SubQuantityDTO> subQuantities;
 
     public ToDoItemDTO() {
     }
 
-    public ToDoItemDTO(String itemName, String quantity, String priceText, String subQuantitiesJson) {
+    public ToDoItemDTO(String itemName, String quantity, String priceText, List<SubQuantityDTO> subQuantities) {
         this.itemName = itemName;
         this.quantity = quantity;
         this.priceText = priceText;
-        this.subQuantitiesJson = subQuantitiesJson;
+        this.subQuantities = subQuantities;
     }
 
     public String getItemName() {
@@ -47,11 +49,11 @@ public class ToDoItemDTO {
         this.priceText = priceText;
     }
 
-    public String getSubQuantitiesJson() {
-        return subQuantitiesJson;
+    public List<SubQuantityDTO> getSubQuantities() {
+        return subQuantities;
     }
 
-    public void setSubQuantitiesJson(String subQuantitiesJson) {
-        this.subQuantitiesJson = subQuantitiesJson;
+    public void setSubQuantities(List<SubQuantityDTO>  subQuantitiesJson) {
+        this.subQuantities = subQuantitiesJson;
     }
 }

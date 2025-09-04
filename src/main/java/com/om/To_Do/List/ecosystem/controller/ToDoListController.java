@@ -31,7 +31,10 @@ public class ToDoListController {
 
     // Step 2: Add recipients later
     @PostMapping("/{listId}/recipients")
-    public ResponseEntity<?> addRecipients(@PathVariable Long listId, @RequestBody AddRecipientsByPhoneRequest request) {
+    public ResponseEntity<?> addRecipients(@PathVariable Long listId, @RequestBody AddRecipientsByPhoneRequest request) throws IllegalAccessException {
+        if(request.getPhoneNumbers() == null || request.getPhoneNumbers().isEmpty()){
+            throw new IllegalAccessException("phoneNumbers must not be null or empty.");
+        }
         toDoListService.addRecipientsByPhone(listId, request.getPhoneNumbers());
         return ResponseEntity.ok("Recipients added successfully.");
     }
@@ -58,19 +61,19 @@ public class ToDoListController {
     }
 
     @PutMapping("/{listId}")
-    public ResponseEntity<?> updateList(@PathVariable Long listId,  @RequestHeader("X-User-Id") Long userId, @RequestBody UpdateListRequest request) throws AccessDeniedException {
-        return ResponseEntity.ok(toDoListService.updateList(listId, userId, request));
+    public ResponseEntity<?> updateList(@PathVariable Long listId,  @RequestHeader("X-User-Id") String userId, @RequestBody UpdateListRequest request) throws AccessDeniedException {
+        return ResponseEntity.ok(toDoListService.updateList(listId, Long.valueOf(userId), request));
     }
 
     @DeleteMapping("/{listId}")
-    public ResponseEntity<?> deleteList(@PathVariable Long listId, @RequestHeader("X-User-Id") Long userId ) throws AccessDeniedException {
-        toDoListService.deleteList(listId, userId);
+    public ResponseEntity<?> deleteList(@PathVariable Long listId, @RequestHeader("X-User-Id") String userId ) throws AccessDeniedException {
+        toDoListService.deleteList(listId, Long.valueOf(userId));
         return ResponseEntity.ok("List deleted successfully.");
     }
 
-    @GetMapping("/created-by/{userId}")
-    public ResponseEntity<List<ToDoListTitleDTO>> getListsByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(toDoListService.getListsByCreator(userId));
+    @GetMapping("/created")
+    public ResponseEntity<List<ToDoListTitleDTO>> getListsByUser(@RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(toDoListService.getListsByCreator(Long.valueOf(userId)));
     }
 
     @GetMapping("/{listId}/creator/{userId}")
@@ -106,13 +109,13 @@ public class ToDoListController {
     }
 
     @PutMapping("/{listId}/items/{itemId}")
-    public ResponseEntity<ToDoItem> updateItem(
+    public ResponseEntity<ToDoItemRes> updateItem(
             @PathVariable Long listId,
             @PathVariable Long itemId,
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Id") String userId,
             @RequestBody UpdateItemRequest request
     ) throws AccessDeniedException {
-        ToDoItem updated = toDoListService.updateItem(listId, itemId, userId, request);
+        ToDoItemRes updated = toDoListService.updateItem(listId, itemId, Long.valueOf(userId), request);
         return ResponseEntity.ok(updated);
     }
 
@@ -123,9 +126,9 @@ public class ToDoListController {
     public ResponseEntity<Void> deleteItem(
             @PathVariable Long listId,
             @PathVariable Long itemId,
-            @RequestHeader("X-User-Id") Long userId
+            @RequestHeader("X-User-Id") String userId
     ) throws AccessDeniedException {
-        toDoListService.deleteItem(listId, itemId, userId);
+        toDoListService.deleteItem(listId, itemId, Long.valueOf(userId));
         return ResponseEntity.noContent().build();
     }
 
@@ -133,10 +136,10 @@ public class ToDoListController {
     public ResponseEntity<ToDoItem> updateChecklistItem(
             @PathVariable Long listId,
             @PathVariable Long itemId,
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Id") String userId,
             @RequestBody UpdateChecklistItemRequest request
     ) throws java.nio.file.AccessDeniedException {
-        ToDoItem updated = toDoListService.updateChecklistItem(listId, itemId, userId, request);
+        ToDoItem updated = toDoListService.updateChecklistItem(listId, itemId, Long.valueOf(userId), request);
         return ResponseEntity.ok(updated);
     }
 
@@ -145,9 +148,9 @@ public class ToDoListController {
     public ResponseEntity<Void> deleteChecklistItem(
             @PathVariable Long listId,
             @PathVariable Long itemId,
-            @RequestHeader("X-User-Id") Long userId
+            @RequestHeader("X-User-Id") String userId
     ) throws java.nio.file.AccessDeniedException {
-        toDoListService.deleteChecklistItem(listId, itemId, userId);
+        toDoListService.deleteChecklistItem(listId, itemId, Long.valueOf(userId));
         return ResponseEntity.noContent().build();
     }
 

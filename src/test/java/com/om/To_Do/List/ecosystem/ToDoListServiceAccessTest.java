@@ -5,7 +5,7 @@ import com.om.To_Do.List.ecosystem.dto.CreateListRequest;
 import com.om.To_Do.List.ecosystem.dto.ToDoItemDTO;
 import com.om.To_Do.List.ecosystem.model.Subscription;
 import com.om.To_Do.List.ecosystem.repository.*;
-import com.om.To_Do.List.ecosystem.client.UserServiceClient;
+//import com.om.To_Do.List.ecosystem.client.UserServiceClient;
 import com.om.To_Do.List.ecosystem.services.PaymentService;
 import com.om.To_Do.List.ecosystem.services.ToDoListService;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ public class ToDoListServiceAccessTest {
         ReflectionTestUtils.setField(toDoListService, "toDoItemRepository", Mockito.mock(ToDoItemRepository.class));
         ReflectionTestUtils.setField(toDoListService, "listRecipientRepository", Mockito.mock(ListRecipientRepository.class));
         ReflectionTestUtils.setField(toDoListService, "eventPublisher", Mockito.mock(ApplicationEventPublisher.class));
-        ReflectionTestUtils.setField(toDoListService, "userServiceClient", Mockito.mock(UserServiceClient.class));
+//        ReflectionTestUtils.setField(toDoListService, "userServiceClient", Mockito.mock(UserServiceClient.class));
         ReflectionTestUtils.setField(toDoListService, "paymentService", paymentService);
     }
 
